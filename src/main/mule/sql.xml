@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="4a6fead3-d5d5-4f0d-8658-bc77e1e3913b" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="36fcd35d-cf32-4fe7-a3d7-6ef6f454e563" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="Saniya@73" database="classicmodels" />
+	</db:config>
+	<flow name="sqlFlow" doc:id="5f44d87b-d2b8-4726-8db5-31f8873e0beb" >
+		<http:listener doc:name="Listener" doc:id="260f1f4e-9253-4180-81ca-9ee310c3da83" config-ref="HTTP_Listener_config" path="/update"/>
+		<db:update doc:name="Update" doc:id="608cad6b-acec-45b0-88e4-7da9e983f8a2" config-ref="Database_Config">
+			<db:sql ><![CDATA[update products set productName =:pname where productCode =:pcode]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+pname: payload.productName,
+pcode: payload.productCode
+}]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message" doc:id="07eb16c6-abfa-4e88-9d36-a0a8cf45bf90" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="9a4c3db2-6baa-41d5-9a60-126c7efbacfa" message="=== print message"/>
+	</flow>
+</mule>
